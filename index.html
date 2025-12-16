@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Motors | Concessionária Premium</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Configuração do Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            light: '#60A5FA',
+                            DEFAULT: '#2563EB', // Azul principal
+                            dark: '#1E40AF',
+                            accent: '#1D4ED8',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'slide-up': 'slideUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos Customizados */
+        body {
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        /* Efeito glassmorphism para a navegação */
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Efeito hover para botões */
+        .btn-animated {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            z-index: 1;
+        }
+
+        .btn-animated::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
+            z-index: -1;
+        }
+
+        .btn-animated:hover::before {
+            left: 100%;
+        }
+
+        .btn-animated:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        /* Efeito hover para cards de carro */
+        .car-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .car-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .car-image-container {
+            overflow: hidden;
+        }
+
+        .car-image-container img {
+            transition: transform 0.6s ease;
+        }
+
+        .car-card:hover .car-image-container img {
+            transform: scale(1.1);
+        }
+
+        /* Scroll Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased" onload="initStaticSite()">
+
+    <!-- Navegação Fixa -->
+    <nav class="fixed w-full z-50 glass shadow-sm transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <div class="bg-brand text-white p-2 rounded-lg">
+                        <i class="fas fa-car-side text-2xl"></i>
+                    </div>
+                    <span class="font-bold text-2xl text-gray-900 tracking-tight">Company<span class="text-brand">Motors</span></span>
+                </div>
+
+                <!-- Menu Desktop -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#home" class="text-gray-600 hover:text-brand font-medium transition duration-300">Início</a>
+                    <a href="#estoque" class="text-gray-600 hover:text-brand font-medium transition duration-300">Estoque</a>
+                    <a href="#planos" class="text-gray-600 hover:text-brand font-medium transition duration-300">Planos</a>
+                    <a href="#sobre" class="text-gray-600 hover:text-brand font-medium transition duration-300">Sobre</a>
+                    <div class="flex items-center gap-2">
+                        <!-- Indicador de Status Estático -->
+                        <span id="connection-status" class="w-2.5 h-2.5 rounded-full bg-green-500" title="Status da Conexão: Estático"></span>
+                        <a href="#contato" class="btn-animated bg-brand text-white px-6 py-2 rounded-full font-bold shadow-md">
+                            Fale Conosco
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Menu Mobile Botão -->
+                <div class="md:hidden flex items-center gap-4">
+                    <span id="connection-status-mobile" class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-brand focus:outline-none">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Mobile Conteúdo -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#home" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-brand hover:bg-blue-50">Início</a>
+                <a href="#estoque" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-brand hover:bg-blue-50">Estoque</a>
+                <a href="#planos" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-brand hover:bg-blue-50">Planos</a>
+                <a href="#sobre" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-brand hover:bg-blue-50">Sobre</a>
+                <a href="#contato" class="block px-3 py-2 rounded-md text-base font-medium text-brand font-bold hover:bg-blue-50">Fale Conosco</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative pt-20 pb-12 lg:pt-32 lg:pb-28 overflow-hidden">
+        <!-- Background Blobs para efeito visual -->
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-blue-100 opacity-50 blur-3xl animate-pulse-slow"></div>
+        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-blue-200 opacity-40 blur-3xl"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div class="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
+                <div class="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left reveal active">
+                    <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl lg:text-5xl xl:text-6xl">
+                        A chave para o seu <br>
+                        <span class="text-brand">sonho sobre rodas</span>
+                    </h1>
+                    <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                        Na Company Motors, unimos tecnologia, conforto e as melhores ofertas do mercado. Encontre o veículo perfeito para o seu estilo de vida.
+                    </p>
+                    <div class="mt-8 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0 flex flex-col sm:flex-row gap-4">
+                        <a href="#estoque" class="btn-animated w-full sm:w-auto flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-brand md:py-4 md:text-lg md:px-10 shadow-lg shadow-blue-500/30">
+                            Ver Veículos
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                        <a href="#contato" class="w-full sm:w-auto flex items-center justify-center px-8 py-3 border-2 border-brand text-base font-medium rounded-full text-brand bg-transparent hover:bg-blue-50 md:py-4 md:text-lg md:px-10 transition-colors duration-300">
+                            Contato Rápido
+                        </a>
+                    </div>
+                    
+                    <div class="mt-10 grid grid-cols-3 gap-4 border-t border-gray-200 pt-6">
+                        <div>
+                            <p class="text-3xl font-bold text-gray-900">500+</p>
+                            <p class="text-sm text-gray-500">Carros Vendidos</p>
+                        </div>
+                        <div>
+                            <p class="text-3xl font-bold text-gray-900">100%</p>
+                            <p class="text-sm text-gray-500">Satisfação</p>
+                        </div>
+                        <div>
+                            <p class="text-3xl font-bold text-gray-900">10 Anos</p>
+                            <p class="text-sm text-gray-500">De Mercado</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center reveal">
+                    <div class="relative mx-auto w-full rounded-lg lg:max-w-md animate-float">
+                        <!-- Imagem de carro placeholder, garantindo que a página carrega -->
+                        <img class="w-full drop-shadow-2xl" src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Carro Esportivo Azul" onerror="this.src='https://placehold.co/800x600/2563EB/FFFFFF?text=Carro+Placeholder'">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Estoque Section -->
+    <section id="estoque" class="py-16 bg-white relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 reveal">
+                <h2 class="text-base text-brand font-semibold tracking-wide uppercase">Nosso Estoque</h2>
+                <div class="flex items-center justify-center gap-3">
+                    <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                        Destaques da Semana
+                    </p>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Estoque Estático
+                    </span>
+                </div>
+                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                    Veículos inspecionados, revisados e prontos para rodar.
+                </p>
+            </div>
+
+            <!-- Grid de Carros (Carregado via JS) -->
+            <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3 min-h-[400px]" id="car-grid">
+                <!-- Conteúdo será injetado pelo JavaScript estático -->
+            </div>
+            
+            <div class="mt-12 text-center">
+                <button class="text-brand font-semibold hover:text-blue-800 transition flex items-center mx-auto gap-2">
+                    Ver todo o estoque <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Por que nos escolher -->
+    <section id="sobre" class="py-16 bg-blue-900 text-white relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10">
+             <i class="fas fa-car absolute -top-10 -left-10 text-9xl"></i>
+             <i class="fas fa-cog absolute bottom-10 right-10 text-9xl animate-spin-slow"></i>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-12 reveal">
+                <h2 class="text-3xl font-bold">Por que escolher a Company Motors?</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="p-6 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition duration-300 reveal">
+                    <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-lg shadow-blue-500/50">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Garantia Total</h3>
+                    <p class="text-blue-100">Todos os nossos veículos possuem garantia de motor e câmbio por 1 ano.</p>
+                </div>
+                
+                <div class="p-6 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition duration-300 reveal">
+                    <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-lg shadow-blue-500/50">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Financiamento Fácil</h3>
+                    <p class="text-blue-100">Aprovação de crédito na hora com as melhores taxas do mercado.</p>
+                </div>
+                
+                <div class="p-6 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition duration-300 reveal">
+                    <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-lg shadow-blue-500/50">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Revisão Completa</h3>
+                    <p class="text-blue-100">Carros inspecionados em mais de 100 itens antes da venda.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Planos de Serviço Section -->
+    <section id="planos" class="py-16 bg-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 reveal">
+                <h2 class="text-base text-brand font-semibold tracking-wide uppercase">Seu Carro Merece</h2>
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                    Nossos Planos de Manutenção
+                </p>
+                <p class="mt-4 max-w-3xl text-xl text-gray-500 mx-auto">
+                    Escolha o plano que melhor se adapta às suas necessidades e garanta o máximo de cuidado e tranquilidade para o seu veículo.
+                </p>
+            </div>
+
+            <!-- Pricing Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+                <!-- Plan 1: Essencial (R$ 50) -->
+                <div class="bg-white p-8 rounded-2xl shadow-xl border-t-4 border-gray-300 transform hover:scale-[1.03] transition duration-300 reveal">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Essencial</h3>
+                    <p class="text-sm text-gray-500 mb-6">Para o básico e essencial.</p>
+                    <p class="text-4xl font-extrabold text-gray-900">
+                        R$ 50<span class="text-xl font-medium text-gray-500">/mês</span>
+                    </p>
+                    <a href="#contato" class="mt-6 w-full btn-animated block text-center bg-gray-700 text-white font-bold py-3 px-4 rounded-full shadow-md hover:bg-gray-800">
+                        Contratar
+                    </a>
+                    <ul class="mt-8 space-y-4">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Revisão Básica Mensal (Nível de Fluídos)</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Desconto de 5% em Peças</span>
+                        </li>
+                        <li class="flex items-start text-gray-400">
+                            <i class="fas fa-times-circle mt-1 mr-2"></i>
+                            <span>Lavagem Mensal</span>
+                        </li>
+                        <li class="flex items-start text-gray-400">
+                            <i class="fas fa-times-circle mt-1 mr-2"></i>
+                            <span>Carro Reserva</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Plan 2: Premium (R$ 100) -->
+                <div class="bg-white p-8 rounded-2xl shadow-xl border-t-4 border-brand transform hover:scale-[1.03] transition duration-300 reveal">
+                    <span class="inline-block bg-brand/10 text-brand text-xs font-bold px-3 py-1 rounded-full mb-2">Mais Popular</span>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
+                    <p class="text-sm text-gray-500 mb-6">Cuidado completo e benefícios extras.</p>
+                    <p class="text-4xl font-extrabold text-gray-900">
+                        R$ 100<span class="text-xl font-medium text-gray-500">/mês</span>
+                    </p>
+                    <a href="#contato" class="mt-6 w-full btn-animated block text-center bg-brand text-white font-bold py-3 px-4 rounded-full shadow-lg shadow-blue-500/30">
+                        Contratar Agora
+                    </a>
+                    <ul class="mt-8 space-y-4">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Revisão Básica Mensal</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Desconto de 10% em Peças</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Lavagem Externa Mensal</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Check-up Completo Semestral</span>
+                        </li>
+                        <li class="flex items-start text-gray-400">
+                            <i class="fas fa-times-circle mt-1 mr-2"></i>
+                            <span>Carro Reserva</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Plan 3: VIP (R$ 150) -->
+                <div class="bg-white p-8 rounded-2xl shadow-xl border-t-4 border-yellow-500 transform hover:scale-[1.03] transition duration-300 reveal">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">VIP</h3>
+                    <p class="text-sm text-gray-500 mb-6">Prioridade e mais conveniência.</p>
+                    <p class="text-4xl font-extrabold text-gray-900">
+                        R$ 150<span class="text-xl font-medium text-gray-500">/mês</span>
+                    </p>
+                    <a href="#contato" class="mt-6 w-full btn-animated block text-center bg-yellow-600 text-white font-bold py-3 px-4 rounded-full shadow-md hover:bg-yellow-700">
+                        Contratar
+                    </a>
+                    <ul class="mt-8 space-y-4">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Todos os benefícios Premium</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Desconto de 15% em Peças</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Prioridade no Agendamento</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Carro Reserva (2 dias/ano)</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Plan 4: Ultimate (R$ 200) -->
+                <div class="bg-white p-8 rounded-2xl shadow-xl border-t-4 border-red-500 transform hover:scale-[1.03] transition duration-300 reveal">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Ultimate</h3>
+                    <p class="text-sm text-gray-500 mb-6">A experiência de luxo completa.</p>
+                    <p class="text-4xl font-extrabold text-gray-900">
+                        R$ 200<span class="text-xl font-medium text-gray-500">/mês</span>
+                    </p>
+                    <a href="#contato" class="mt-6 w-full btn-animated block text-center bg-red-600 text-white font-bold py-3 px-4 rounded-full shadow-md hover:bg-red-700">
+                        Contratar
+                    </a>
+                    <ul class="mt-8 space-y-4">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Todos os benefícios VIP</span>
+                        </li>
+                         <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Proteção de Pintura Anual</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Desconto de 20% em Peças</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand mt-1 mr-2"></i>
+                            <span class="text-gray-700">Carro Reserva (5 dias/ano)</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Contato Section -->
+    <section id="contato" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Informações -->
+                <div class="reveal">
+                    <h2 class="text-3xl font-extrabold text-gray-900 mb-6">Entre em Contato</h2>
+                    <p class="text-lg text-gray-500 mb-8">
+                        Estamos prontos para atender você. Visite nossa loja, ligue ou mande uma mensagem.
+                    </p>
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-center group cursor-pointer">
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand shadow-md group-hover:bg-brand group-hover:text-white transition duration-300">
+                                <i class="fas fa-map-marker-alt text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Endereço</p>
+                                <p class="text-lg font-bold text-gray-900 group-hover:text-brand transition">Av. das Nações, 1000, São Paulo - SP</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center group cursor-pointer" onclick="copiarTelefone()">
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand shadow-md group-hover:bg-brand group-hover:text-white transition duration-300">
+                                <i class="fas fa-phone-alt text-xl animate-pulse"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Telefone</p>
+                                <p class="text-lg font-bold text-gray-900 group-hover:text-brand transition">(11) 99999-9999</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center group cursor-pointer">
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand shadow-md group-hover:bg-brand group-hover:text-white transition duration-300">
+                                <i class="fas fa-envelope text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Email</p>
+                                <p class="text-lg font-bold text-gray-900 group-hover:text-brand transition">contato@companymotors.com.br</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulário -->
+                <div class="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-brand reveal">
+                    <!-- O formulário é estático e apenas simula o envio -->
+                    <form id="contact-form">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="nome">Nome Completo</label>
+                            <input class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition" id="nome" type="text" placeholder="Seu nome" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="telefone">Telefone</label>
+                            <input class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition" id="telefone" type="tel" placeholder="(XX) XXXXX-XXXX" required>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="mensagem">Mensagem</label>
+                            <textarea class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition" id="mensagem" rows="4" placeholder="Estou interessado no carro..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full btn-animated bg-brand text-white font-bold py-3 px-4 rounded-xl shadow-lg text-lg">
+                            Enviar Mensagem
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-300 py-8 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0">
+                <span class="font-bold text-xl text-white">Company<span class="text-brand">Motors</span></span>
+                <p class="text-sm mt-1">&copy; 2024 Todos os direitos reservados.</p>
+            </div>
+            <div class="flex space-x-6 text-sm">
+                <a href="#" class="hover:text-white transition">Política de Privacidade</a>
+                <a href="#" class="hover:text-white transition">Termos de Uso</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de Sucesso (Toast customizado, substitui o alert) -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl transform translate-y-24 transition-transform duration-300 z-50 flex items-center gap-3">
+        <i class="fas fa-check-circle text-xl"></i>
+        <div>
+            <h4 class="font-bold">Sucesso!</h4>
+            <p class="text-sm" id="toast-message">Mensagem enviada.</p>
+        </div>
+    </div>
+
+    <!-- Scripts (Funcionalidade Estática) -->
+    <script>
+        // Dados de carros estáticos (substitui o Firestore/backend)
+        const initialCars = [
+            {
+                name: "Chevrolet Camaro",
+                model: "2.0 Turbo SS",
+                price: "R$ 290.000",
+                year: "2023",
+                km: "5.000km",
+                fuel: "Gasolina",
+                image: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                tag: "NOVO",
+                tagColor: "bg-brand"
+            },
+            {
+                name: "Porsche Macan",
+                model: "3.0 V6 S AWD",
+                price: "R$ 450.000",
+                year: "2022",
+                km: "12.000km",
+                fuel: "Gasolina",
+                image: "https://images.unsplash.com/photo-1533473359331-0135ef1bcfb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+            },
+            {
+                name: "Tesla Model 3",
+                model: "Long Range AWD",
+                price: "R$ 310.000",
+                year: "2024",
+                km: "0km",
+                fuel: "Elétrico",
+                image: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                tag: "OFERTA",
+                tagColor: "bg-green-500"
+            }
+        ];
+
+        // Elementos de UI
+        const carGrid = document.getElementById('car-grid');
+        const contactForm = document.getElementById('contact-form');
+
+        // Cria o card de carro com dados estáticos
+        function createCarCard(car) {
+            // Se houver tag, cria o HTML para a tag
+            const tagHtml = car.tag ? 
+                `<span class="absolute top-3 right-3 ${car.tagColor || 'bg-brand'} text-white text-xs font-bold px-3 py-1 rounded-full z-10">${car.tag}</span>` : '';
+            
+            // Retorna o HTML do card
+            return `
+                <div class="car-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 reveal active">
+                    <div class="car-image-container h-48 w-full relative">
+                        ${tagHtml}
+                        <img class="w-full h-full object-cover" src="${car.image}" alt="${car.name}" onerror="this.src='https://placehold.co/600x400?text=Carro'">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900">${car.name}</h3>
+                                <p class="text-sm text-gray-500">${car.model}</p>
+                            </div>
+                            <span class="text-brand font-bold text-lg">${car.price}</span>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm text-gray-500 justify-between border-t border-gray-100 pt-4">
+                            <span><i class="fas fa-calendar-alt mr-1"></i> ${car.year}</span>
+                            <span><i class="fas fa-tachometer-alt mr-1"></i> ${car.km}</span>
+                            <span><i class="fas fa-gas-pump mr-1"></i> ${car.fuel}</span>
+                        </div>
+                        <button onclick="window.showInterest('${car.name}')" class="mt-6 w-full btn-animated bg-brand text-white font-bold py-2 px-4 rounded-xl shadow-md hover:bg-blue-700">
+                            Tenho Interesse
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Carrega o estoque estático na página
+        function loadStaticInventory() {
+            carGrid.innerHTML = ''; 
+            initialCars.forEach(car => {
+                const carCard = createCarCard(car);
+                carGrid.innerHTML += carCard;
+            });
+            // Ativa as animações dos cards
+            const newCards = document.querySelectorAll('.car-card');
+            newCards.forEach(card => card.classList.add('reveal', 'active'));
+        }
+
+        // Simula o envio do formulário de contato
+        function setupContactForm() {
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const btn = e.target.querySelector('button[type="submit"]');
+                const originalText = btn.innerText;
+                
+                // Feedback visual de carregamento simulado
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+                btn.classList.add('opacity-75');
+                btn.disabled = true;
+
+                // Simulação de delay para envio
+                setTimeout(() => {
+                    // Após 1 segundo, simula sucesso
+                    showToast("Recebemos sua mensagem! Entraremos em contato em breve.");
+                    e.target.reset(); // Limpa o formulário
+
+                    // Restaura o botão
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('opacity-75');
+                    btn.disabled = false;
+                }, 1000);
+            });
+        }
+        
+        // Inicialização do Site Estático
+        window.initStaticSite = function() {
+            loadStaticInventory();
+            setupContactForm();
+            reveal(); // Ativa as animações iniciais
+        }
+
+
+        // --- Funções de UI (interações) ---
+        // Preenche o formulário de contato com o interesse no carro
+        window.showInterest = function(carName) {
+            const msgInput = document.getElementById('mensagem');
+            msgInput.value = `Olá, tenho interesse no veículo ${carName}. Gostaria de mais informações.`;
+            document.getElementById('contato').scrollIntoView({ behavior: 'smooth' });
+            msgInput.focus();
+        };
+
+        // Exibe o toast (notificação de sucesso)
+        window.showToast = function(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.classList.remove('translate-y-24');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-24');
+            }, 3000);
+        };
+        
+        // Toggle do menu mobile
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => { 
+                mobileMenu.classList.toggle('hidden'); 
+            });
+            
+            // Fecha o menu mobile ao clicar em um link
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+        }
+
+        // Efeito de sombra na barra de navegação ao rolar
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) navbar.classList.add('shadow-md');
+            else navbar.classList.remove('shadow-md');
+            reveal(); // Chama a função de reveal a cada scroll
+        });
+
+        // Scroll Reveal simples (Animação de entrada)
+        const revealElements = document.querySelectorAll('.reveal');
+        function reveal() {
+            var windowHeight = window.innerHeight;
+            var elementVisible = 150;
+            for (var i = 0; i < revealElements.length; i++) {
+                var elementTop = revealElements[i].getBoundingClientRect().top;
+                if (elementTop < windowHeight - elementVisible) {
+                    revealElements[i].classList.add("active");
+                }
+            }
+        }
+        // Ativa o reveal na carga inicial
+        window.addEventListener("load", reveal);
+        
+        // Copia telefone
+        window.copiarTelefone = function() {
+             // Usando document.execCommand('copy') como fallback para ambientes restritos
+             const phoneNumber = "(11) 99999-9999";
+             const tempInput = document.createElement('input');
+             tempInput.value = phoneNumber;
+             document.body.appendChild(tempInput);
+             tempInput.select();
+             
+             try {
+                document.execCommand('copy');
+                showToast("Telefone copiado!");
+             } catch (err) {
+                showToast("Erro ao copiar.");
+             }
+             document.body.removeChild(tempInput);
+        };
+    </script>
+</body>
+</html>
